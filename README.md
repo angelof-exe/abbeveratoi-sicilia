@@ -3,7 +3,7 @@
 # Abbeveratoi in Sicilia
 Questa semplice Web App realizzato con [Flask](https://flask.palletsprojects.com/en/3.0.x/), mostra i vari abbeveratoi presenti sul territorio Siciliano. 
 
-La Web App nasce con lo scopo di mostrare quali di questi abbeveratoi sono inattivi e che potrebbero essere ripristinati e valorizzati.
+La Web App nasce con lo scopo di mostrare quali di questi abbeveratoi sono inattivi e che potrebbero essere ripristinati e valorizzati (Feature ancora da implementare).
 
 In un momento in cui la Sicilia viene colpità da una siccità estrema, il ripristino di tali abbeveratoi non solo offre un supporto diretto alle necessità di acqua per animali e agricoltura, ma contribuisce anche alla sostenibilità ambientale e alla preservazione del patrimonio culturale. 
 
