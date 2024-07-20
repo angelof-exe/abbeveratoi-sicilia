@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Abbeveratoi in Sicilia</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        #map {
+            height: 500px;
+            width: 100%;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Abbeveratoi in Sicilia</h1>
+    <div id="map"></div>
+    <ul>
+        {% for trough in water_troughs %}
+        <li>
+            <a href="https://www.google.com/maps/search/?api=1&query={{ trough.geometry.location.lat }},{{ trough.geometry.location.lng }}"
+                target="_blank">
+                {{ trough.name }} - {{ trough.vicinity.split(',')[-1] }}
+            </a>
+        </li>
+        {% endfor %}
+    </ul>
+    <script>
+        const API_KEY = "{{ api_key }}";
+        const MAP_ID = "{{ map_id }}";
+        const waterTroughs = {{ water_troughs| tojson }};
+    </script>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+    <script async defer
+        src="https://maps.googleapis.com/maps/api/js?key={{ api_key }}&callback=initMap&libraries=marker"></script>
+</body>
+
+</html>
