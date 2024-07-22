@@ -11,9 +11,10 @@ Un approccio integrato che unisce la conservazione storica con la gestione moder
 
 ## Setup
 Usare PIP o PIP3 per installare i packages necessari
-`pip3 install -r requirements.txt`
+```
+pip3 install -r requirements.txt
+```
 
-È necessario avere la key dalle [API di Goole Maps](https://developers.google.com/maps/documentation/javascript/get-api-key?hl=it), oltre a questo bisogna anche creare una [MAP ID](https://developers.google.com/maps/documentation/get-map-id?hl=it). 
 
 ### Notizie sugli abbeveratoi restaurati
 - https://www.risoluto.it/notizie-ribera/pulizia-e-valorizzazione-degli-abbeveratoi-riberalab-al-lavoro/
