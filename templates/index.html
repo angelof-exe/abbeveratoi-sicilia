@@ -5,36 +5,94 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Abbeveratoi in Sicilia</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <style>
-        #map {
-            height: 500px;
-            width: 100%;
-        }
-    </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
 </head>
 
 <body>
-    <h1>Abbeveratoi in Sicilia</h1>
-    <div id="map"></div>
-    <ul>
-        {% for trough in water_troughs %}
-        <li>
-            <a href="https://www.google.com/maps/search/?api=1&query={{ trough.geometry.location.lat }},{{ trough.geometry.location.lng }}"
-                target="_blank">
-                {{ trough.name }} - {{ trough.vicinity.split(',')[-1] }}
-            </a>
-        </li>
-        {% endfor %}
-    </ul>
+    <div class="container mt-5">
+        <h1 class="text-center">Abbeveratoi in Sicilia</h1>
+        <div id="map" class="my-4"></div>
+        <div class="watering-place-list" id="wateringPlaceList"></div>
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+        <div class="alert alert-warning" role="alert">
+            {{ messages[0] }}
+        </div>
+        {% endif %}
+        {% endwith %}
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script>
-        const API_KEY = "{{ api_key }}";
-        const MAP_ID = "{{ map_id }}";
-        const waterTroughs = {{ water_troughs| tojson }};
+        // Initialize the map
+        var map = L.map('map').setView([37.6, 14.1], 8);
+
+        // Add the OpenStreetMap tiles
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        // Prevent map from being dragged out of bounds
+        var bounds = [[36.3203615818532, 12.008056640625], [39.15214258358986, 16.644287109375004]];
+        map.setMaxBounds(bounds);
+        map.on('drag', function () {
+            map.panInsideBounds(bounds, { animate: false });
+        });
+
+        // Fetch watering places data
+        fetch('/api/watering_places')
+            .then(response => response.json())
+            .then(data => {
+                const wateringPlaceList = document.getElementById('wateringPlaceList');
+
+                data.elements.forEach(place => {
+                    if (place.type === 'node') {
+                        const lat = place.lat;
+                        const lon = place.lon;
+                        const name = place.tags.name || 'Abbeveratoio';
+                        const city = place.tags['addr:city'] || place.tags['addr:town'] || place.tags['addr:village'] || 'Sconosciuta';
+                        const status = place.status || 'unknown';
+                        const statusText = status === 'active' ? 'Attivo' : (status === 'inactive' ? 'Inattivo' : 'Sconosciuto');
+                        const statusClass = status === 'active' ? 'text-success' : (status === 'inactive' ? 'text-danger' : 'text-secondary');
+
+                        // Add marker to the map
+                        const marker = L.marker([lat, lon]).addTo(map);
+                        marker.bindPopup(`
+                            <b>${name}</b><br>${city}<br>
+                            <a href="https://www.openstreetmap.org/?mlat=${lat}&mlon=${lon}#map=18/${lat}/${lon}" target="_blank">Visualizza su OpenStreetMap</a><br>
+                            <form action="/report_status" method="POST" style="margin-top: 10px;">
+                                <input type="hidden" name="lat" value="${lat}">
+                                <input type="hidden" name="lon" value="${lon}">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="status" id="active${lat}${lon}" value="active" ${status === 'active' ? 'checked' : ''}>
+                                    <label class="form-check-label" for="active${lat}${lon}">
+                                        Attivo
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="status" id="inactive${lat}${lon}" value="inactive" ${status === 'inactive' ? 'checked' : ''}>
+                                    <label class="form-check-label" for="inactive${lat}${lon}">
+                                        Inattivo
+                                    </label>
+                                </div>
+                                <button type="submit" class="btn btn-primary btn-sm mt-2">Segnala</button>
+                            </form>
+                        `);
+
+                        // Add place to the list
+                        const listItem = document.createElement('div');
+                        listItem.className = 'watering-place-item';
+                        listItem.innerHTML = `<a href="https://www.openstreetmap.org/?mlat=${lat}&mlon=${lon}#map=18/${lat}/${lon}" target="_blank">${name} - ${city}</a> <span class="${statusClass}">(${statusText})</span>`;
+                        wateringPlaceList.appendChild(listItem);
+                    }
+                });
+            });
     </script>
-    <script src="{{ url_for('static', filename='script.js') }}"></script>
-    <script async defer
-        src="https://maps.googleapis.com/maps/api/js?key={{ api_key }}&callback=initMap&libraries=marker"></script>
 </body>
 
 </html>
