@@ -52,6 +52,7 @@
 
                 data.elements.forEach(place => {
                     if (place.type === 'node') {
+                        const nodeId = place.id;
                         const lat = place.lat;
                         const lon = place.lon;
                         const name = place.tags.name || 'Abbeveratoio';
@@ -64,19 +65,18 @@
                         const marker = L.marker([lat, lon]).addTo(map);
                         marker.bindPopup(`
                             <b>${name}</b><br>${city}<br>
-                            <a href="https://www.openstreetmap.org/?mlat=${lat}&mlon=${lon}#map=18/${lat}/${lon}" target="_blank">Visualizza su OpenStreetMap</a><br>
+                            <a href="https://www.openstreetmap.org/node/${nodeId}" target="_blank">Visualizza su OpenStreetMap</a><br>
                             <form action="/report_status" method="POST" style="margin-top: 10px;">
-                                <input type="hidden" name="lat" value="${lat}">
-                                <input type="hidden" name="lon" value="${lon}">
+                                <input type="hidden" name="node_id" value="${nodeId}">
                                 <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="status" id="active${lat}${lon}" value="active" ${status === 'active' ? 'checked' : ''}>
-                                    <label class="form-check-label" for="active${lat}${lon}">
+                                    <input class="form-check-input" type="radio" name="status" id="active${nodeId}" value="active" ${status === 'active' ? 'checked' : ''}>
+                                    <label class="form-check-label" for="active${nodeId}">
                                         Attivo
                                     </label>
                                 </div>
                                 <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="status" id="inactive${lat}${lon}" value="inactive" ${status === 'inactive' ? 'checked' : ''}>
-                                    <label class="form-check-label" for="inactive${lat}${lon}">
+                                    <input class="form-check-input" type="radio" name="status" id="inactive${nodeId}" value="inactive" ${status === 'inactive' ? 'checked' : ''}>
+                                    <label class="form-check-label" for="inactive${nodeId}">
                                         Inattivo
                                     </label>
                                 </div>
@@ -87,7 +87,7 @@
                         // Add place to the list
                         const listItem = document.createElement('div');
                         listItem.className = 'watering-place-item';
-                        listItem.innerHTML = `<a href="https://www.openstreetmap.org/?mlat=${lat}&mlon=${lon}#map=18/${lat}/${lon}" target="_blank">${name} - ${city}</a> <span class="${statusClass}">(${statusText})</span>`;
+                        listItem.innerHTML = `<a href="https://www.openstreetmap.org/node/${nodeId}" target="_blank">${name} - ${city}</a> <span class="${statusClass}">(${statusText})</span>`;
                         wateringPlaceList.appendChild(listItem);
                     }
                 });

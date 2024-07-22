@@ -36,23 +36,21 @@ def watering_places():
     # Aggiungi lo stato degli abbeveratoi
     for element in data['elements']:
         if element['type'] == 'node':
-            key = f"{element['lat']},{element['lon']}"
-            element['status'] = watering_place_status.get(key, 'unknown')
+            element_id = str(element['id'])
+            element['status'] = watering_place_status.get(element_id, 'unknown')
 
     return jsonify(data)
 
 @app.route('/report_status', methods=['POST'])
 def report_status():
-    lat = float(request.form['lat'])
-    lon = float(request.form['lon'])
+    node_id = request.form['node_id']
     status = request.form.get('status')
 
     if status not in ['active', 'inactive']:
         flash('Per favore seleziona lo stato dell\'abbeveratoio.')
         return redirect(url_for('index'))
 
-    key = f"{lat},{lon}"
-    watering_place_status[key] = status
+    watering_place_status[node_id] = status
 
     # Salva lo stato degli abbeveratoi nel file
     with open(STATUS_FILE, 'w') as f:
