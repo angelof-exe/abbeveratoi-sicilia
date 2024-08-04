@@ -5,36 +5,110 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Abbeveratoi in Sicilia</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <style>
-        #map {
-            height: 500px;
-            width: 100%;
-        }
-    </style>
+    <script src="https://cdn.jsdelivr.net/npm/leaflet@1.7.1/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.7.1/dist/leaflet.css" />
 </head>
 
 <body>
-    <h1>Abbeveratoi in Sicilia</h1>
-    <div id="map"></div>
-    <ul>
-        {% for trough in water_troughs %}
-        <li>
-            <a href="https://www.google.com/maps/search/?api=1&query={{ trough.geometry.location.lat }},{{ trough.geometry.location.lng }}"
-                target="_blank">
-                {{ trough.name }} - {{ trough.vicinity.split(',')[-1] }}
-            </a>
-        </li>
-        {% endfor %}
-    </ul>
+    <div class="container">
+        <h1 class="mt-5">Abbeveratoi in Sicilia</h1>
+        <div id="map"></div>
+
+        <div class="mt-4">
+            <div class="btn-group mb-3" role="group">
+                <button type="button" class="btn btn-success" onclick="filterList('active')">Attivo</button>
+                <button type="button" class="btn btn-danger" onclick="filterList('inactive')">Non attivo</button>
+                <button type="button" class="btn btn-primary" onclick="filterList('unknown')">Sconosciuto</button>
+            </div>
+
+            <div class="watering-place-list">
+                <h2>Lista degli abbeveratoi</h2>
+                <ul id="watering-place-list" class="list-group">
+                    {% for place in watering_places %}
+                    <li class="list-group-item watering-place-item" data-status="{{ place.tags.status or 'unknown' }}"
+                        onclick="focusOnMap({{ place.lat or place.center.lat }}, {{ place.lon or place.center.lon }})">
+                        <strong>{{ place.tags.name or 'Abbeveratoio' }}</strong> - {{ place.tags['addr:city'] or
+                        place.tags['addr:town'] or place.tags['addr:village'] or 'Sconosciuta' }}
+                        <br>
+                        <span
+                            class="badge badge-{{ 'success' if place.tags.status == 'active' else 'danger' if place.tags.status == 'inactive' else 'primary' }}">
+                            {{ 'Attivo' if place.tags.status == 'active' else 'Non attivo' if place.tags.status ==
+                            'inactive' else 'Sconosciuto' }}
+                        </span>
+                        <a href="https://www.openstreetmap.org/?mlat={{ place.lat }}&mlon={{ place.lon }}#map=19/{{ place.lat }}/{{ place.lon }}"
+                            target="_blank" class="ml-3">Vedi su OpenStreetMap</a>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+
     <script>
-        const API_KEY = "{{ api_key }}";
-        const MAP_ID = "{{ map_id }}";
-        const waterTroughs = {{ water_troughs| tojson }};
+        const map = L.map('map').setView([37.6, 14.2], 8);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 18,
+        }).addTo(map);
+
+        const bounds = [
+            [36.3203615818532, 12.008056640625],
+            [39.15214258358986, 16.644287109375004]
+        ];
+        map.setMaxBounds(bounds);
+        map.on('drag', function () {
+            map.panInsideBounds(bounds, { animate: false });
+        });
+
+        const wateringPlaces = {{ watering_places | tojson }};
+
+        // Store markers to focus on them later
+        const markers = {};
+
+        wateringPlaces.forEach(place => {
+            const lat = place.lat || place.center.lat;
+            const lon = place.lon || place.center.lon;
+            const status = place.tags.status || 'unknown';
+            const markerColor = status === 'active' ? 'green' : (status === 'inactive' ? 'red' : 'blue');
+
+            const marker = L.circleMarker([lat, lon], {
+                color: markerColor,
+                radius: 8
+            }).addTo(map);
+
+            markers[`${lat},${lon}`] = marker;
+
+            const popupContent = `
+            <b>${place.tags.name || 'Abbeveratoio'}</b><br>
+            ${place.tags['addr:city'] || place.tags['addr:town'] || place.tags['addr:village'] || 'Sconosciuta'}<br>
+            Stato: ${status.charAt(0).toUpperCase() + status.slice(1)}<br>
+            <a href="https://www.openstreetmap.org/?mlat=${lat}&mlon=${lon}#map=19/${lat}/${lon}" target="_blank">Vedi su OpenStreetMap</a>
+        `;
+            marker.bindPopup(popupContent);
+        });
+
+        // Filter the list based on status
+        function filterList(status) {
+            const items = document.querySelectorAll('.watering-place-item');
+            items.forEach(item => {
+                if (status === 'all' || item.getAttribute('data-status') === status) {
+                    item.style.display = 'block';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        }
+
+        // Focus on map
+        function focusOnMap(lat, lon) {
+            const marker = markers[`${lat},${lon}`];
+            if (marker) {
+                map.setView([lat, lon], 14);
+                marker.openPopup();
+            }
+        }
     </script>
-    <script src="{{ url_for('static', filename='script.js') }}"></script>
-    <script async defer
-        src="https://maps.googleapis.com/maps/api/js?key={{ api_key }}&callback=initMap&libraries=marker"></script>
 </body>
 
 </html>
