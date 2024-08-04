@@ -28,7 +28,7 @@
                 <ul id="watering-place-list" class="list-group">
                     {% for place in watering_places %}
                     <li class="list-group-item watering-place-item" data-status="{{ place.tags.status or 'unknown' }}"
-                        onclick="focusOnMap({{ place.lat or place.center.lat }}, {{ place.lon or place.center.lon }})">
+                        onclick="focusOnMap({{ place.lat or place.get('center', {}).get('lat', '0') }}, {{ place.lon or place.get('center', {}).get('lon', '0') }})">
                         <strong>{{ place.tags.name or 'Abbeveratoio' }}</strong> - {{ place.tags['addr:city'] or
                         place.tags['addr:town'] or place.tags['addr:village'] or 'Sconosciuta' }}
                         <br>
@@ -37,11 +37,12 @@
                             {{ 'Attivo' if place.tags.status == 'active' else 'Non attivo' if place.tags.status ==
                             'inactive' else 'Sconosciuto' }}
                         </span>
-                        <a href="https://www.openstreetmap.org/?mlat={{ place.lat }}&mlon={{ place.lon }}#map=19/{{ place.lat }}/{{ place.lon }}"
+                        <a href="https://www.openstreetmap.org/?mlat={{ place.lat or place.get('center', {}).get('lat', '0') }}&mlon={{ place.lon or place.get('center', {}).get('lon', '0') }}#map=19/{{ place.lat or place.get('center', {}).get('lat', '0') }}/{{ place.lon or place.get('center', {}).get('lon', '0') }}"
                             target="_blank" class="ml-3">Vedi su OpenStreetMap</a>
                     </li>
                     {% endfor %}
                 </ul>
+
             </div>
         </div>
     </div>
