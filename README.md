@@ -1,7 +1,3 @@
-Here's a refined version of your README for GitHub. I've polished it to make it more comprehensive, clear, and developer-friendly, while maintaining the original purpose of the project.
-
----
-
 ![Python](https://img.shields.io/badge/python-3670A0?style=for-the-badge&logo=python&logoColor=ffdd54) ![Flask](https://img.shields.io/badge/flask-%23000.svg?style=for-the-badge&logo=flask&logoColor=white)
 
 # Abbeveratoi in Sicilia
